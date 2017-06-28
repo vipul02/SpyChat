@@ -1,71 +1,106 @@
 # Program for secret chat
+# from spy_details.py we are importing some classes and functions
 from spy_details import spy, Spy, ChatMsg, friends
+# importing Steganography funcntion from steganogarphy for hiding text into the images
 from steganography.steganography import Steganography
-
+# welcome message to the user
 print 'Welcome to EphemeralSpyChat'
-
+# default status messages like whats app does
 status_msg = ['Hey there!I started using SpyChat', 'Busy...', 'Driving', 'Hacking', 'Sleeping']
 
 
+# function to return new status message
 def new_status():
-    new_status_msg = raw_input('Enter your thoughtful status')
+    # storing the new status message in a string variable
+    new_status_msg = raw_input('Enter your thoughtful status:\n')
     return new_status_msg
 
 
+# function to add status
 def add_status():
+    # initially setting updated message to None
     updated_status_msg = None
+    # checking if user had any status message
+    # we use 'is not' here rather tha '!=' coz the former one is more suitable or valid
     if spy.current_status_msg is not None:
         print 'Your current status message is ' + spy.current_status_msg
     else:
         print 'You don\'t have any status message'
-    status = raw_input('Do you want to select status message from the older(y/n)')
+    # ask the user if they want to set current status message from older ones
+    status = raw_input('Do you want to select status message from the older(y/n):\n')
+    # we have used upper in case user enter small y
     if status.upper() == 'Y':
+        # setting the item position to one
         item_position = 1
+        # loop to navigate over all the status messages
         for msg in status_msg:
             print '%d %s' % (item_position, msg)
+            # updating the item position
             item_position += 1
-        status_choice = int(raw_input("Enter the choice of your status message"))
-        if len(status_msg) >= status_choice:
+        # ask the user to enter status choice and convert it to integer
+        status_choice = int(raw_input("Enter the choice of your status message:\n"))
+        # checking the index error
+        if status_choice <= len(status_msg):
+            # updating the message by retrieving it from list of status message
             updated_status_msg = status_msg[status_choice-1]
         else:
             print 'Not in option'
     elif status.upper() == 'N':
+        # calling new status function to get new status message
         updated_status_msg = new_status()
     else:
         print 'You might have entered the wrong choice, enter y or n'
+    # if there is any updated message then its true
     if updated_status_msg:
         print 'New/Updated status message is %s' % updated_status_msg
     else:
         print 'You don\'t have new/updated status message'
+    # function returns updated message to the calling function
     return updated_status_msg
 
 
+# function to add a new friend to friend list
 def add_friend():
+    # initially setting details of friend to zero
     new_friend = Spy('', '', 0.0, 0)
-
-    new_friend.name = raw_input('Please tell your friends name:')
+    # asking the user to enter name
+    new_friend.name = raw_input('Please tell your friend name:')
+    # asking the user to enter salutation
     new_friend.salutation = raw_input('What should we call you Mr. or Ms.:')
+    # asking the user to enter rating and converting it to float
     new_friend.rating = float(raw_input('Please tell your friends rating:'))
-    new_friend.age = int(raw_input('Please tell your friends name:'))
+    # asking the user to enter age and converting it to integer
+    new_friend.age = int(raw_input('Please tell your friends age:'))
 
-    if 12 < new_friend.age < 50 and len(new_friend.name) > 0 and new_friend.rating >= spy.rating:
+    # checks if user has right age to proceed, valid name and rating greater than user
+    if 12 < new_friend.age < 50 and name_validation() and new_friend.rating >= spy.rating:
+        # appending the new friend to friends list
         friends.append(new_friend)
         print 'Friend added'
     else:
         print 'Sorry we can\'t enter spy with that invalid details'
+    # returning the no. of friends to the calling function
     return len(friends)
 
 
+# function  to select a friend to start chatting with
 def select_a_friend():
     position = 0
+    # loop to navigate the list of friends
     for friend in friends:
+        # printing the friend detail
         print '%d. %s %s aged %d having spy rating %.2f is online' % (position+1, friend.salutation, friend.name, friend.age, friend.rating)
+        # updating the position of list item of friends
         position += 1
+    # ask the user to select the friend and convert it into integer
     friend_choice = int(raw_input('Select one of your friend:'))
+    # checking the index error
     if len(friends) >= friend_choice:
+        # just pass the control flow
         pass
     else:
         print 'Wrong choice :_D'
+    # returning the index of friend choice
     return friend_choice-1
 
 
@@ -110,7 +145,7 @@ def start_chat():
     show_menu = True
     if 12 < spy.age < 50:
         print 'Authentication complete! Welcome '\
-        + spy.name + '\nAge:' + str(spy.age) + '\nRating:' + str(spy.rating) + 'Thanks for being with us.'
+        + spy.name + '\nAge:' + str(spy.age) + '\nRating:' + str(spy.rating) + ' Thanks for being with us.'
         while show_menu:
             menu_choices = "What do you want to do?\n1. Add a status update\n2. Add a friend\n"\
              + "3. Send a secret message\n4. Read a secret message\n5. Read Chats from a user\n6. Close Application:\n"
@@ -173,7 +208,7 @@ existing=raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.na
 # we have used upper() coz user can enter small y
 if existing.upper() == "Y":
     # call the start_chat func
-    start_chat(spy)
+    start_chat()
 # we have used upper() coz user can enter small n
 elif existing.upper() == "N":
     # initializing spy details to zero r nothing
@@ -191,7 +226,7 @@ elif existing.upper() == "N":
         # ask the user to enter rating and convert the string to float
         spy.rating = float(raw_input('Enter your rating:'))
         # call the start_chat func
-        start_chat(spy)
+        start_chat()
     else:
         print 'Enter a valid name'
 else:
