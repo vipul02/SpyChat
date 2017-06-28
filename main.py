@@ -1,5 +1,5 @@
 # Program for secret chat
-from spy_details import spy, Spy, chat_msg, friends
+from spy_details import spy, Spy, ChatMsg, friends
 from steganography.steganography import Steganography
 from datetime import datetime
 
@@ -12,7 +12,7 @@ def new_status():
     return new_status_msg
 
 def add_status():
-    new_status_msg=None
+    updated_status_msg = None
     if spy.current_status_msg != None:
         print 'Your current status message is ' + spy.current_status_msg
     else:
@@ -29,14 +29,14 @@ def add_status():
         else:
              print 'Not in option'
     elif status.upper() == 'N':
-        new_status_msg = new_status()
+        updated_status_msg = new_status()
     else:
         print 'You might have entered the wrong choice, enter y or n'
-    if new_status_msg:
-        print 'New/Updated status message is %s' % (new_status_msg)
+    if updated_status_msg:
+        print 'New/Updated status message is %s' % (updated_status_msg)
     else:
         print 'You don\'t have new/updated status message'
-    return new_status_msg
+    return updated_status_msg
 
 def add_friend():
     new_friend = Spy('','',0.0,0)
@@ -127,23 +127,25 @@ def start_chat(spy):
     else:
         print 'You are foreign to this group perhaps due to your age'
 
-def login():
-    spy.name=raw_input('Enter your name:')
-    if(len(spy.name)>0):
-        spy.salutation=raw_input('What should we call you Mr. or Ms.?:')
-        spy.age=int(raw_input('Enter your age:'))
-        spy.rating=float(raw_input('Enter your rating:'))
+def name_validation():
+    if len(spy.name)>0:
+
+
+
+
+
+existing=raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.name + ' (y/n)')
+if existing.upper() == "Y":
+    start_chat(spy)
+elif existing.upper() == "N":
+    spy = Spy('', '', 0, 0.0)
+    spy.name = raw_input('Enter your name:')
+    if len(spy.name) > 0:
+        spy.salutation = raw_input('What should we call you Mr. or Ms.?:')
+        spy.age = int(raw_input('Enter your age:'))
+        spy.rating = float(raw_input('Enter your rating:'))
         start_chat(spy)
     else:
         print 'Enter a valid name'
-
-if spy.name=='':
-    login()
 else:
-    existing=raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.name + ' (y/n)')
-    if existing.upper() == "Y":
-        start_chat(spy)
-    else:
-
-        spy = Spy('', '', 0, 0.0)
-        login()
+    print 'Wrong choice dude'
