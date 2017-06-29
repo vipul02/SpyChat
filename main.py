@@ -3,6 +3,8 @@
 from spy_details import spy, Spy, ChatMsg, friends
 # importing Steganography funcntion from steganogarphy for hiding text into the images
 from steganography.steganography import Steganography
+# importing termcolor for text formatting
+from termcolor import colored
 # welcome message to the user
 print 'Welcome to EphemeralSpyChat'
 # default status messages like whats app does
@@ -30,6 +32,8 @@ def current_status_msg():
 def add_status():
     # initially setting updated message to None
     updated_status_msg = None
+    # call the current_status _msg() to print the current status of user
+    current_status_msg()
     # ask the user if they want to set current status message from older ones
     status = raw_input('Do you want to select status message from the older(y/n):\n')
     # we have used upper in case user enter small y
@@ -59,8 +63,27 @@ def add_status():
         print 'New/Updated status message is %s' % updated_status_msg
     else:
         print 'You don\'t have new/updated status message'
+    # to append the updated messages to status messages list
+    status_msg.append(updated_status_msg)
     # function returns updated message to the calling function
     return updated_status_msg
+
+
+# function to print the standard of spy rating
+def spy_rating(rating):
+    # if elif else series to check the standards for spy rating
+    if rating >= 4.5:
+        print "Very High Standards"
+    elif 4.5 > spy.rating >= 4:
+        print "High Standards"
+    elif 4 > rating >= 3.5:
+        print "Very Good Standards, but still need a increase"
+    elif 3.5 > rating >= 3:
+        print "Good Standards, but still need a increase"
+    elif 3 > rating >= 2.5:
+        print "Nice Standards, but still need a increase"
+    else:
+        print "So low, please increase your standards"
 
 
 # function to add a new friend to friend list
@@ -75,7 +98,7 @@ def add_friend():
     new_friend.rating = float(raw_input('Please tell your friends rating:'))
     # asking the user to enter age and converting it to integer
     new_friend.age = int(raw_input('Please tell your friends age:'))
-
+    spy_rating(new_friend.rating)
     # checks if user has right age to proceed, valid name and rating greater than user
     if 12 < new_friend.age < 50 and name_validation() and new_friend.rating >= spy.rating:
         # appending the new friend to friends list
@@ -108,6 +131,43 @@ def select_a_friend():
     return friend_choice-1
 
 
+# function to check no text condition
+def no_text(text, sent_by):
+    # if we checking no text condition in encoding
+    if sent_by is True:
+        # this condition checks if there is no text
+        if text == '':
+            # asking the user if he wants to continue with no text message
+            no_msg = raw_input('Do you want to continue without text message(y/n):\n')
+            # if user sends that continue with no text message then assigning the same text to new_text
+            if no_msg.upper() == 'Y':
+                new_text = text
+            # if user says no the asking user for text message to encode
+            else:
+                new_text = raw_input('What you wanna say to your comrade')
+        # if the text contains some message then assigning the same text to new_text
+        else:
+            new_text = text
+        # returning the new_text to function call
+        return new_text
+    # if we checking no text condition in decoding
+    else:
+        if text == '':
+            print 'Sender has send image with no text message inside it'
+            # again calling start_chat()
+            start_chat()
+        else:
+            pass
+
+
+# function to encode the text in image
+def encode(original_image, output_path, text):
+    # Using the Steganography library hiding the message inside the image.
+    # by the below code we encode the text message into the original and
+    # produce an output image with hidden text message
+    Steganography.encode(original_image, output_path, text)
+
+
 # function to send messages
 def send_msg():
     # calling function to select a friend and then storing the index of friends list to friend_choice
@@ -118,15 +178,52 @@ def send_msg():
     output_path = 'output.png'
     # asking the user to enter the text message to be hide
     text = raw_input('What you wanna say to your comrade')
-    # by the below code we encode the text message into the original and
+    # function to check if there is no text message
+    text = no_text(text, True)
+    # Using the Steganography library hiding the message inside the image.
+    # by calling the function we encode the text message into the original and
     # produce an output image with hidden text message
-    Steganography.encode(original_image, output_path, text)
+    encode(original_image, output_path, text)
     # declaring a new object of ChatMsg type class taking two arguments,
     # one is text message and another is boolean True stating that message sent ny me
     new_chat = ChatMsg(text, True)
     # appending the text message in chats of a selected friend
     friends[friend_choice].chats.append(new_chat)
     print 'Your secret image is ready!'
+
+
+# function to check if other spy speaking too much, greater than 100 words
+# and surely i can speak any no. of words....haa haa ha ha
+def average_chat(hidden_text, sender):
+    if len(hidden_text) > 100:
+        del friends[sender]
+
+
+# function to check and send appropriate reply if spy has send secret message like this
+# sos, save me, alert, help
+def check_sos(text, spy, image_path):
+    # making a list of sos type msg
+    sos_msg = ['SOS', 'SAVE ME', 'ALERT', 'HELP']
+    # initialising a variable to zero
+    flag = 0
+    # loop to navigate through sos_msg list
+    for sos in sos_msg:
+        # checks if sos message is inside any text message
+        if sos in text:
+            flag += 1
+        else:
+            pass
+    # if there is nay or more sos messages within a text then condition is true
+    if flag > 0:
+        encode(image_path, "yes.png", "Help will be arrived shortly")
+        # declaring a new object of ChatMsg type class taking two arguments,
+        # one is text message and another is boolean True stating that message sent ny me
+        new_chat = ChatMsg(text, True)
+        # appending the text message in chats of a selected friend
+        friends[spy].chats.append(new_chat)
+        print 'Your secret image is ready!'
+    else:
+        pass
 
 
 # function to read a message
@@ -138,6 +235,11 @@ def read_msg():
     output_path = raw_input('What is the name of file(with ext)?')
     # decoding the hidden text message and storing it
     hidden_text = Steganography.decode(output_path)
+    # function to check if there is no text message
+    no_text(hidden_text, False)
+    # calling average_chat() to see if spy is speaking too much
+    check_sos(hidden_text, sender, output_path)
+    average_chat(hidden_text, sender)
     # declaring a new object of ChatMsg type class taking two arguments,
     # one is text message and another is boolean False stating that message was not sent ny me
     new_chat = ChatMsg(hidden_text, False)
@@ -148,23 +250,36 @@ def read_msg():
 
 # function to read chat history with a particular friend
 def read_chat_history():
-    # function to select a friend with which to want to read chat history
+    # function to select a friend of which to want to read chat history
     read_for = select_a_friend()
     # Printing new line
     print '\n'
-    # navigating in all chats with a particular friend
+    # navigating in all chats of a particular friend
     for chat in friends[read_for].chats:
         # checking if the chat message was sent by you
         if chat.sent_by_me:
-            # printing the message with time of type
-            print '[%s] %s: %s' % (chat.time.strftime("%d %B %Y"), 'You said:', chat.message)
+            # assigning the time, time of type 29 June 2017, Thu 18:35 with blue in color and some attribute
+            time = colored(chat.time.strftime("%d %B %Y, %a %H:%M"), 'blue', attrs=["dark", "bold"])
+            # assigning the name, spy.name with red color and some attributes
+            name = colored(spy.name, 'red', attrs=["dark", "bold"])
+            # assigning the msg, chat.message with black color and some attributes
+            msg = colored(chat.message, 'black', attrs=["dark", "bold"])
+            # printing the message with time details
+            print '[%s] %s said: %s' % (time, name, msg)
         else:
-            print '[%s] %s said: %s' % (chat.time.strftime("%d %B %Y"), friends[read_for].name, chat.message)
+            # assigning the time, time of type 29 June 2017, Thu 18:35 with blue in color and some attribute
+            time = colored(chat.time.strftime("%d %B %Y, %a %H:%M"), 'blue', attrs=["dark", "bold"])
+            # assigning the name, spy.name with red color and some attributes
+            name = colored(friends[read_for].name, 'red', attrs=["dark", "bold"])
+            # assigning the msg, chat.message with black color and some attributes
+            msg = colored(chat.message, 'black', attrs=["dark", "bold"])
+            # printing the message with time details
+            print '[%s] %s said: %s' % (time, name, msg)
 
 
 # function to start chat with a friend
 def start_chat():
-    # collabrating the spy name and spy salutation into spy name
+    # collaborating the spy name and spy salutation into spy name
     spy.name = spy.salutation + ' ' + spy.name
     # initially setting spy menu to True
     show_menu = True
@@ -173,7 +288,7 @@ def start_chat():
         # printing the authentication message
         # using \ so print multi line
         print 'Authentication complete! Welcome '\
-         + spy.name + '\nAge:' + str(spy.age) + '\nRating:' + str(spy.rating) + ' Thanks for being with us.'
+         + spy.name + ', Age: ' + str(spy.age) + ', Rating: ' + str(spy.rating) + '. Thanks for being with us.'
         # while loop with condition show_menu to be True and stops as show_menu becomes False
         while show_menu:
             # storing the choices into menu_choice
@@ -189,7 +304,7 @@ def start_chat():
                     # calling function to check the current status message
                     current_status_msg()
                 # second choice
-                if menu_choice == 2:
+                elif menu_choice == 2:
                     # calling add_status function to add status message and returning
                     # the updated status message and storing it to current status message
                     spy.current_status_msg = add_status()
@@ -225,6 +340,7 @@ def name_validation():
     if len(spy.name)>0:
         a = 0
         b = 0
+        c = 0
         # loop to navigate over each character in spy.name
         for i in spy.name:
             # checks if character is alphabet
@@ -236,7 +352,7 @@ def name_validation():
                 a += 1
             # checks if character is space
             elif i.isspace():
-                pass
+                c +=1
             # now the rest of characters will fall into it
             else:
                 b += 1

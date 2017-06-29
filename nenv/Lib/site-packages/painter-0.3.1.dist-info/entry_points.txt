@@ -1,0 +1,3 @@
+[console_scripts]
+strip-color = painter.strip_color_cli:main
+
