@@ -16,16 +16,20 @@ def new_status():
     return new_status_msg
 
 
-# function to add status
-def add_status():
-    # initially setting updated message to None
-    updated_status_msg = None
-    # checking if user had any status message
+# function to print current status message
+def current_status_msg():
+    # checking if user had any current status message
     # we use 'is not' here rather tha '!=' coz the former one is more suitable or valid
     if spy.current_status_msg is not None:
         print 'Your current status message is ' + spy.current_status_msg
     else:
         print 'You don\'t have any status message'
+
+
+# function to add status
+def add_status():
+    # initially setting updated message to None
+    updated_status_msg = None
     # ask the user if they want to set current status message from older ones
     status = raw_input('Do you want to select status message from the older(y/n):\n')
     # we have used upper in case user enter small y
@@ -104,67 +108,113 @@ def select_a_friend():
     return friend_choice-1
 
 
+# function to send messages
 def send_msg():
+    # calling function to select a friend and then storing the index of friends list to friend_choice
     friend_choice = select_a_friend()
-
+    # asking the user to enter the name of original image with extension
     original_image = raw_input("Enter the name of your image with extension(like .jpg or .png")
+    # setting the path for the image with hidden text message
     output_path = 'output.png'
+    # asking the user to enter the text message to be hide
     text = raw_input('What you wanna say to your comrade')
+    # by the below code we encode the text message into the original and
+    # produce an output image with hidden text message
     Steganography.encode(original_image, output_path, text)
-
+    # declaring a new object of ChatMsg type class taking two arguments,
+    # one is text message and another is boolean True stating that message sent ny me
     new_chat = ChatMsg(text, True)
+    # appending the text message in chats of a selected friend
     friends[friend_choice].chats.append(new_chat)
     print 'Your secret image is ready!'
 
 
+# function to read a message
 def read_msg():
+    # selecting a friend by calling function and storing the index in sender variable
     sender = select_a_friend()
-
+    # asking the user for the name of image with extension
+    # to decode the hidden text message from it
     output_path = raw_input('What is the name of file(with ext)?')
+    # decoding the hidden text message and storing it
     hidden_text = Steganography.decode(output_path)
+    # declaring a new object of ChatMsg type class taking two arguments,
+    # one is text message and another is boolean False stating that message was not sent ny me
     new_chat = ChatMsg(hidden_text, False)
+    # appending the text message in chats of a selected friend
     friends[sender].chats.append(new_chat)
     print 'Your secret message have been saved'
 
 
+# function to read chat history with a particular friend
 def read_chat_history():
-
+    # function to select a friend with which to want to read chat history
     read_for = select_a_friend()
-
+    # Printing new line
     print '\n'
-
+    # navigating in all chats with a particular friend
     for chat in friends[read_for].chats:
+        # checking if the chat message was sent by you
         if chat.sent_by_me:
+            # printing the message with time of type
             print '[%s] %s: %s' % (chat.time.strftime("%d %B %Y"), 'You said:', chat.message)
         else:
             print '[%s] %s said: %s' % (chat.time.strftime("%d %B %Y"), friends[read_for].name, chat.message)
 
 
+# function to start chat with a friend
 def start_chat():
+    # collabrating the spy name and spy salutation into spy name
     spy.name = spy.salutation + ' ' + spy.name
+    # initially setting spy menu to True
     show_menu = True
+    # checking if user has valid age
     if 12 < spy.age < 50:
+        # printing the authentication message
+        # using \ so print multi line
         print 'Authentication complete! Welcome '\
-        + spy.name + '\nAge:' + str(spy.age) + '\nRating:' + str(spy.rating) + ' Thanks for being with us.'
+         + spy.name + '\nAge:' + str(spy.age) + '\nRating:' + str(spy.rating) + ' Thanks for being with us.'
+        # while loop with condition show_menu to be True and stops as show_menu becomes False
         while show_menu:
-            menu_choices = "What do you want to do?\n1. Add a status update\n2. Add a friend\n"\
-             + "3. Send a secret message\n4. Read a secret message\n5. Read Chats from a user\n6. Close Application:\n"
+            # storing the choices into menu_choice
+            menu_choices = "What do you want to do?\n1. Know current status message\n"\
+             + "2. Add a status update\n3. Add a friend\n4. Send a secret message\n"\
+             + "5. Read a secret message\n6. Read Chats from a user\n7. Close Application:\n"
+            # getting the mnu choice from user and converting it to int and storing it to a variable
             menu_choice = int(raw_input(menu_choices))
-
+            # condition to check if user has selected the right menu choice
             if menu_choice > 0:
+                # first choice
                 if menu_choice == 1:
+                    # calling function to check the current status message
+                    current_status_msg()
+                # second choice
+                if menu_choice == 2:
+                    # calling add_status function to add status message and returning
+                    # the updated status message and storing it to current status message
                     spy.current_status_msg = add_status()
-                elif menu_choice == 2:
-                    no_of_friends = add_friend()
-                    print 'You have %d friends' % no_of_friends
+                # third choice
                 elif menu_choice == 3:
-                    send_msg()
+                    # calling the function add friend and in return get the no. of friends
+                    no_of_friends = add_friend()
+                    # printing the no. of friends you have
+                    print 'You have %d friends' % no_of_friends
+                # fourth choice
                 elif menu_choice == 4:
-                    read_msg()
+                    # calling send_msg function to send messages
+                    send_msg()
+                # fifth choice
                 elif menu_choice == 5:
+                    # calling read_msg function to read the messages sent to you
+                    read_msg()
+                # sixth choice
+                elif menu_choice == 6:
+                    # read chat history of a friend
                     read_chat_history()
+                # in other cases setting show_menu to False and closing the application
                 else:
                     show_menu = False
+    # if you do not have valid age  then else will run
     else:
         print 'You are foreign to this group perhaps due to your age'
 
