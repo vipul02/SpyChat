@@ -69,6 +69,41 @@ def add_status():
     return updated_status_msg
 
 
+# function for checking if name is valid or not
+def name_validation(name):
+    # checks if spy name has some length
+    if len(name) > 0:
+        a = 0
+        b = 0
+        c = 0
+        # loop to navigate over each character in spy.name
+        for i in name:
+            # checks if character is alphabet
+            if i.isalpha():
+                # 'pass' just pass the statement
+                c += 1
+            # checks if character is digit
+            elif i.isdigit():
+                a += 1
+            # checks if character is space
+            elif i.isspace():
+                c += 1
+            # now the rest of characters will fall into it
+            else:
+                b += 1
+        # for printing only alphabetical name no digit no special character
+        # if the string has spaces before and after then it removes it
+        # if statement will only run if there is no digit and no special character
+        if a <= 0 and b <= 0:
+            return True
+        else:
+            print "String must have digits or special characters"
+            return False
+    else:
+        print "Your name is too short to be visible"
+        return False
+
+
 # function to print the standard of spy rating
 def spy_rating(rating):
     # if elif else series to check the standards for spy rating
@@ -100,7 +135,9 @@ def add_friend():
     new_friend.age = int(raw_input('Please tell your friends age:'))
     spy_rating(new_friend.rating)
     # checks if user has right age to proceed, valid name and rating greater than user
-    if 12 < new_friend.age < 50 and name_validation() and new_friend.rating >= spy.rating:
+    if 12 < new_friend.age < 50 and name_validation(new_friend.name) and new_friend.rating >= spy.rating:
+        # stripping off spaces before and after his name
+        new_friend.name = new_friend.name.strip(" ")
         # appending the new friend to friends list
         friends.append(new_friend)
         print 'Friend added'
@@ -120,13 +157,14 @@ def select_a_friend():
         # updating the position of list item of friends
         position += 1
     # ask the user to select the friend and convert it into integer
-    friend_choice = int(raw_input('Select one of your friend:'))
+    friend_choice = int(raw_input('Select one of your friend:\n'))
     # checking the index error
     if len(friends) >= friend_choice:
         # just pass the control flow
         pass
     else:
         print 'Wrong choice :_D'
+        start_chat()
     # returning the index of friend choice
     return friend_choice-1
 
@@ -173,11 +211,11 @@ def send_msg():
     # calling function to select a friend and then storing the index of friends list to friend_choice
     friend_choice = select_a_friend()
     # asking the user to enter the name of original image with extension
-    original_image = raw_input("Enter the name of your image with extension(like .jpg or .png")
+    original_image = raw_input("Enter the name of your image with extension(like .jpg or .png):")
     # setting the path for the image with hidden text message
-    output_path = 'output.png'
+    output_path = raw_input("Enter the name of image to create with secret text(write extension):")
     # asking the user to enter the text message to be hide
-    text = raw_input('What you wanna say to your comrade')
+    text = raw_input('What you wanna say to your comrade:')
     # function to check if there is no text message
     text = no_text(text, True)
     # Using the Steganography library hiding the message inside the image.
@@ -201,27 +239,28 @@ def average_chat(hidden_text, sender):
 
 # function to check and send appropriate reply if spy has send secret message like this
 # sos, save me, alert, help
-def check_sos(text, spy, image_path):
+def check_sos(text, sender, image_path):
     # making a list of sos type msg
+    text = text.upper()
     sos_msg = ['SOS', 'SAVE ME', 'ALERT', 'HELP']
     # initialising a variable to zero
     flag = 0
     # loop to navigate through sos_msg list
     for sos in sos_msg:
-        # checks if sos message is inside any text message
-        if sos in text:
+        # checks if sos message
+        if sos == text:
             flag += 1
         else:
             pass
     # if there is nay or more sos messages within a text then condition is true
     if flag > 0:
-        encode(image_path, "yes.png", "Help will be arrived shortly")
+        new_text = raw_input("THIS IS AN EMERGENCY, SEND A VALID REPLY\n")
+        encode(image_path, "yes.png", new_text)
         # declaring a new object of ChatMsg type class taking two arguments,
         # one is text message and another is boolean True stating that message sent ny me
-        new_chat = ChatMsg(text, True)
+        new_chat = ChatMsg(new_text, True)
         # appending the text message in chats of a selected friend
-        friends[spy].chats.append(new_chat)
-        print 'Your secret image is ready!'
+        friends[sender].chats.append(new_chat)
     else:
         pass
 
@@ -232,20 +271,24 @@ def read_msg():
     sender = select_a_friend()
     # asking the user for the name of image with extension
     # to decode the hidden text message from it
-    output_path = raw_input('What is the name of file(with ext)?')
+    output_path = raw_input('What is the name of file(with ext)?:')
     # decoding the hidden text message and storing it
     hidden_text = Steganography.decode(output_path)
     # function to check if there is no text message
     no_text(hidden_text, False)
     # calling average_chat() to see if spy is speaking too much
-    check_sos(hidden_text, sender, output_path)
     average_chat(hidden_text, sender)
     # declaring a new object of ChatMsg type class taking two arguments,
     # one is text message and another is boolean False stating that message was not sent ny me
     new_chat = ChatMsg(hidden_text, False)
     # appending the text message in chats of a selected friend
     friends[sender].chats.append(new_chat)
+    # coloring the text
+    text = colored(hidden_text, 'red')
     print 'Your secret message have been saved'
+    print 'Secret message is:\n%s' % text
+    # for checking is any sos message is sent
+    check_sos(hidden_text, sender, output_path)
 
 
 # function to read chat history with a particular friend
@@ -261,18 +304,18 @@ def read_chat_history():
             # assigning the time, time of type 29 June 2017, Thu 18:35 with blue in color and some attribute
             time = colored(chat.time.strftime("%d %B %Y, %a %H:%M"), 'blue', attrs=["dark", "bold"])
             # assigning the name, spy.name with red color and some attributes
-            name = colored(spy.name, 'red', attrs=["dark", "bold"])
-            # assigning the msg, chat.message with black color and some attributes
-            msg = colored(chat.message, 'black', attrs=["dark", "bold"])
+            name = colored(spy.salutation + ' ' + spy.name, 'red', attrs=["dark", "bold"])
+            # assigning the msg, chat.message with green color and some attributes
+            msg = colored(chat.message, 'green', attrs=["dark", "bold"])
             # printing the message with time details
             print '[%s] %s said: %s' % (time, name, msg)
         else:
             # assigning the time, time of type 29 June 2017, Thu 18:35 with blue in color and some attribute
             time = colored(chat.time.strftime("%d %B %Y, %a %H:%M"), 'blue', attrs=["dark", "bold"])
             # assigning the name, spy.name with red color and some attributes
-            name = colored(friends[read_for].name, 'red', attrs=["dark", "bold"])
-            # assigning the msg, chat.message with black color and some attributes
-            msg = colored(chat.message, 'black', attrs=["dark", "bold"])
+            name = colored(friends[read_for].salutation + ' ' + friends[read_for].name, 'red', attrs=["dark", "bold"])
+            # assigning the msg, chat.message with green color and some attributes
+            msg = colored(chat.message, 'green', attrs=["dark", "bold"])
             # printing the message with time details
             print '[%s] %s said: %s' % (time, name, msg)
 
@@ -280,7 +323,6 @@ def read_chat_history():
 # function to start chat with a friend
 def start_chat():
     # collaborating the spy name and spy salutation into spy name
-    spy.name = spy.salutation + ' ' + spy.name
     # initially setting spy menu to True
     show_menu = True
     # checking if user has valid age
@@ -288,7 +330,7 @@ def start_chat():
         # printing the authentication message
         # using \ so print multi line
         print 'Authentication complete! Welcome '\
-         + spy.name + ', Age: ' + str(spy.age) + ', Rating: ' + str(spy.rating) + '. Thanks for being with us.'
+         + spy.salutation + ' ' + spy.name + ', Age: ' + str(spy.age) + ', Rating: ' + str(spy.rating) + '. Thanks for being with us.'
         # while loop with condition show_menu to be True and stops as show_menu becomes False
         while show_menu:
             # storing the choices into menu_choice
@@ -334,40 +376,6 @@ def start_chat():
         print 'You are foreign to this group perhaps due to your age'
 
 
-# function for checking if name is valid or not
-def name_validation():
-    # checks if spy name has some length
-    if len(spy.name)>0:
-        a = 0
-        b = 0
-        c = 0
-        # loop to navigate over each character in spy.name
-        for i in spy.name:
-            # checks if character is alphabet
-            if i.isalpha():
-                # 'pass' just pass the statement
-                pass
-            # checks if character is digit
-            elif i.isdigit():
-                a += 1
-            # checks if character is space
-            elif i.isspace():
-                c +=1
-            # now the rest of characters will fall into it
-            else:
-                b += 1
-        # for printing only alphabetical name no digit no special character
-        # if the string has spaces before and after then it removes it
-        # if statement will only run if there is no digit and no special character
-        if a <= 0 and b <= 0:
-            return True
-        else:
-            print "String must have digits or special characters"
-            return False
-    else:
-        print "Your name is too short to be visible"
-        return False
-
 # Asks the user if they want to continue as existing user or want to enter a new username
 existing=raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.name + ' (y/n)')
 # checks the user input
@@ -382,7 +390,7 @@ elif existing.upper() == "N":
     # take the input from user in the form of string
     spy.name = raw_input('Enter your name:')
     # call name_validation from validating name
-    if name_validation():
+    if name_validation(spy.name):
         # strip()- strip off the spaces before and after the string
         spy.name = spy.name.strip(" ")
         # asking for the salutation, before name like Mr.Sayam
@@ -391,6 +399,8 @@ elif existing.upper() == "N":
         spy.age = int(raw_input('Enter your age:'))
         # ask the user to enter rating and convert the string to float
         spy.rating = float(raw_input('Enter your rating:'))
+        # to check the standards of rating
+        spy_rating(spy.rating)
         # call the start_chat func
         start_chat()
     else:
