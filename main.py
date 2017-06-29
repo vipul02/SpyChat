@@ -56,6 +56,8 @@ def add_status():
     elif status.upper() == 'N':
         # calling new status function to get new status message
         updated_status_msg = new_status()
+        # to append the new updated messages to status messages list
+        status_msg.append(updated_status_msg)
     else:
         print 'You might have entered the wrong choice, enter y or n'
     # if there is any updated message then its true
@@ -63,8 +65,6 @@ def add_status():
         print 'New/Updated status message is %s' % updated_status_msg
     else:
         print 'You don\'t have new/updated status message'
-    # to append the updated messages to status messages list
-    status_msg.append(updated_status_msg)
     # function returns updated message to the calling function
     return updated_status_msg
 
@@ -104,12 +104,47 @@ def name_validation(name):
         return False
 
 
+# function to check valid salutation, so that it might not be #,!,@,12,&,*,( and many more
+def valid_salutation(salutation):
+    if len(salutation) > 0:
+        a = 0
+        b = 0
+        c = 0
+        # loop to navigate over each character in salutation
+        for i in salutation:
+            # checks if character is alphabet
+            if i.isalpha():
+                c += 1
+            # checks if character is digit
+            elif i.isdigit():
+                a += 1
+            # checks if character is space
+            elif i.isspace():
+                c += 1
+            elif i is '.':
+                c += 1
+            # now the rest of characters will fall into it
+            else:
+                b += 1
+        # for printing only alphabetical name no digit no special character
+        # if the string has spaces before and after then it removes it
+        # if statement will only run if there is no digit and no special character
+        if a <= 0 and b <= 0:
+            return True
+        else:
+            print "String must have digits or special characters"
+            return False
+    else:
+        print "Your salutation is too short to be visible"
+        return False
+
+
 # function to print the standard of spy rating
 def spy_rating(rating):
     # if elif else series to check the standards for spy rating
-    if rating >= 4.5:
+    if 5 >= rating >= 4.5:
         print "Very High Standards"
-    elif 4.5 > spy.rating >= 4:
+    elif 4.5 > rating >= 4:
         print "High Standards"
     elif 4 > rating >= 3.5:
         print "Very Good Standards, but still need a increase"
@@ -117,8 +152,10 @@ def spy_rating(rating):
         print "Good Standards, but still need a increase"
     elif 3 > rating >= 2.5:
         print "Nice Standards, but still need a increase"
-    else:
+    elif 2.5 > rating >= 0:
         print "So low, please increase your standards"
+    else:
+        print "Invalid standards"
 
 
 # function to add a new friend to friend list
@@ -133,16 +170,20 @@ def add_friend():
     new_friend.rating = float(raw_input('Please tell your friends rating:'))
     # asking the user to enter age and converting it to integer
     new_friend.age = int(raw_input('Please tell your friends age:'))
+    # check the standards of rating
     spy_rating(new_friend.rating)
+    # checking the salutation
     # checks if user has right age to proceed, valid name and rating greater than user
-    if 12 < new_friend.age < 50 and name_validation(new_friend.name) and new_friend.rating >= spy.rating:
+    if 12 < new_friend.age < 50 and name_validation(new_friend.name) and 5 >= new_friend.rating >= spy.rating and \
+            valid_salutation(new_friend.salutation):
         # stripping off spaces before and after his name
         new_friend.name = new_friend.name.strip(" ")
+        new_friend.salutation = new_friend.salutation.strip(" ")
         # appending the new friend to friends list
         friends.append(new_friend)
         print 'Friend added'
     else:
-        print 'Sorry we can\'t enter spy with that invalid details'
+        print 'Sorry we can\'t enter spy with that invalid details or your age might be low'
     # returning the no. of friends to the calling function
     return len(friends)
 
@@ -203,6 +244,11 @@ def encode(original_image, output_path, text):
     # Using the Steganography library hiding the message inside the image.
     # by the below code we encode the text message into the original and
     # produce an output image with hidden text message
+    ''' **** Discovered a new thing *****
+        **** steganography can encode and convert .png or .jpg to .txt file with inside of
+        text file various unicodes not understandable and can decode .txt file also******
+        **** By this we can conclude that it may encode any file format to any other file format and
+         decode too   ***** '''
     Steganography.encode(original_image, output_path, text)
 
 
@@ -276,8 +322,6 @@ def read_msg():
     hidden_text = Steganography.decode(output_path)
     # function to check if there is no text message
     no_text(hidden_text, False)
-    # calling average_chat() to see if spy is speaking too much
-    average_chat(hidden_text, sender)
     # declaring a new object of ChatMsg type class taking two arguments,
     # one is text message and another is boolean False stating that message was not sent ny me
     new_chat = ChatMsg(hidden_text, False)
@@ -289,6 +333,8 @@ def read_msg():
     print 'Secret message is:\n%s' % text
     # for checking is any sos message is sent
     check_sos(hidden_text, sender, output_path)
+    # calling average_chat() to see if spy is speaking too much
+    average_chat(hidden_text, sender)
 
 
 # function to read chat history with a particular friend
@@ -320,6 +366,36 @@ def read_chat_history():
             print '[%s] %s said: %s' % (time, name, msg)
 
 
+# function to change user
+def change_user():
+    # take the input from user in the form of string
+    spy.name = raw_input('Enter your name:')
+    # call name_validation from validating name
+    if name_validation(spy.name):
+        # strip()- strip off the spaces before and after the string
+        spy.name = spy.name.strip(" ")
+        # asking for the salutation, before name like Mr.Sayam
+        spy.salutation = raw_input('What should we call you Mr. or Ms.?:')
+        # checking for the valid salutation
+        result = valid_salutation(spy.salutation)
+        if result is False:
+            # if result turns to be false then exit the program
+            print 'Error, wrong salutation'
+            exit(1)
+        else:
+            pass
+        # ask the user to enter age and convert the string to integer
+        spy.age = int(raw_input('Enter your age:'))
+        # ask the user to enter rating and convert the string to float
+        spy.rating = float(raw_input('Enter your rating:'))
+        # to check the standards of rating
+        spy_rating(spy.rating)
+        # call the start_chat func
+        start_chat()
+    else:
+        print 'Enter a valid name'
+
+
 # function to start chat with a friend
 def start_chat():
     # collaborating the spy name and spy salutation into spy name
@@ -336,7 +412,7 @@ def start_chat():
             # storing the choices into menu_choice
             menu_choices = "What do you want to do?\n1. Know current status message\n"\
              + "2. Add a status update\n3. Add a friend\n4. Send a secret message\n"\
-             + "5. Read a secret message\n6. Read Chats from a user\n7. Close Application:\n"
+             + "5. Read a secret message\n6. Read Chats from a user\n7. Change User\n8. Close Application:\n"
             # getting the mnu choice from user and converting it to int and storing it to a variable
             menu_choice = int(raw_input(menu_choices))
             # condition to check if user has selected the right menu choice
@@ -368,6 +444,9 @@ def start_chat():
                 elif menu_choice == 6:
                     # read chat history of a friend
                     read_chat_history()
+                elif menu_choice == 7:
+                    # function to change user
+                    change_user()
                 # in other cases setting show_menu to False and closing the application
                 else:
                     show_menu = False
@@ -377,7 +456,7 @@ def start_chat():
 
 
 # Asks the user if they want to continue as existing user or want to enter a new username
-existing=raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.name + ' (y/n)')
+existing = raw_input('Do you want to continue as ' + spy.salutation + ' ' + spy.name + ' (y/n)')
 # checks the user input
 # we have used upper() coz user can enter small y
 if existing.upper() == "Y":
@@ -387,23 +466,7 @@ if existing.upper() == "Y":
 elif existing.upper() == "N":
     # initializing spy details to zero r nothing
     spy = Spy('', '', 0, 0.0)
-    # take the input from user in the form of string
-    spy.name = raw_input('Enter your name:')
-    # call name_validation from validating name
-    if name_validation(spy.name):
-        # strip()- strip off the spaces before and after the string
-        spy.name = spy.name.strip(" ")
-        # asking for the salutation, before name like Mr.Sayam
-        spy.salutation = raw_input('What should we call you Mr. or Ms.?:')
-        # ask the user to enter age and convert the string to integer
-        spy.age = int(raw_input('Enter your age:'))
-        # ask the user to enter rating and convert the string to float
-        spy.rating = float(raw_input('Enter your rating:'))
-        # to check the standards of rating
-        spy_rating(spy.rating)
-        # call the start_chat func
-        start_chat()
-    else:
-        print 'Enter a valid name'
+    # calling change user function
+    change_user()
 else:
     print 'Wrong choice dude'
